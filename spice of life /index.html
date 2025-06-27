@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>A Spice of Life</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #FF5A00;
+      --bg: #fffaf7;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: #1a1a1a;
+    }
+    header {
+      text-align: center;
+      padding: 30px 16px;
+    }
+    header img {
+      max-width: 80px;
+      border-radius: 50%;
+    }
+    header h1 {
+      font-size: 28px;
+      margin-top: 12px;
+      color: var(--primary);
+    }
+    .hero {
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .hero img {
+      max-width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+    .hero h2 {
+      font-size: 22px;
+      margin-top: 24px;
+    }
+    .hero p {
+      color: #555;
+      font-size: 14px;
+      margin: 10px 0 20px;
+    }
+    .start-btn {
+      background: var(--primary);
+      color: white;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .start-btn:hover {
+      background: #e64b00;
+    }
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+      margin-top: 40px;
+      padding-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="https://via.placeholder.com/80x80.png?text=Logo" alt="Logo" />
+    <h1>A Spice of Life</h1>
+  </header>
+
+  <section class="hero">
+    <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092" alt="Delicious Food" />
+    <h2>Delicious Meals Delivered to Your Door</h2>
+    <p>Order fresh food online, get live tracking, and pay with cash on delivery.</p>
+    <button class="start-btn" onclick="window.location.href='menu.html'">Start Ordering 🍽️</button>
+  </section>
+
+  <footer>
+    Made with ❤️ by KKWebTech
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Restaurant Menu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #FF5A00;
+      --text-dark: #333;
+      --text-light: #777;
+      --bg: #fff;
+      --card-radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      padding-bottom: 80px;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      z-index: 999;
+    }
+    header h1 {
+      font-size: 20px;
+      color: var(--primary);
+    }
+    .cart-icon {
+      position: relative;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .cart-badge {
+      position: absolute;
+      top: -6px;
+      right: -10px;
+      background: red;
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 5px;
+      border-radius: 50%;
+    }
+    .menu {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .menu-card {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background: #fff;
+      border-radius: var(--card-radius);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      flex-direction: row;
+    }
+    .menu-card img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .menu-info { flex: 1; }
+    .menu-info h3 {
+      font-size: 16px;
+      margin-bottom: 4px;
+      color: var(--text-dark);
+    }
+    .menu-info p {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 6px;
+    }
+    .menu-info .price {
+      font-weight: 500;
+      color: var(--primary);
+    }
+    .qty-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+    }
+    .qty-control button {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      color: white;
+      font-size: 18px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .qty-control span {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .add-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .cart-bar {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      font-size: 16px;
+    }
+    .cart-bar button {
+      background: white;
+      color: var(--primary);
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Spice of Life</h1>
+    <div class="cart-icon">
+      🛒
+      <div class="cart-badge" id="cart-badge">0</div>
+    </div>
+  </header>
+
+  <main class="menu" id="menu"></main>
+
+  <div class="cart-bar">
+    <span id="cart-summary">0 items • ₹0</span>
+    <button onclick="window.location.href='cart.html'">View Cart</button>
+  </div>
+
+  <script type="module">
+    const menuData = [
+      { name: "Paneer Tikka", desc: "Grilled cottage cheese with spices", price: 120, image:"0aaf6186-3d4d-4ae0-8e2d-ecca3a0639e8.jpg" },
+      { name: "Butter Naan", desc: "Soft naan with butter", price: 40, image: "indian-naan-bread-with-garlic-butter-isolated-transparent-background-png-psd_888962-582.avif" },
+      { name: "Chole Bhature", desc: "Spicy chickpeas with fried bread", price: 100, image: "chole-bhature-north-indian-food-600nw-2238261205.webp" },
+      { name: "momos", desc: "Juicy, hot, and loaded with flavour! \n Try our freshly steamed Momos with spicy chutney – a perfect snack for every craving! 🥟🌶️", price: 100, image: "pngwing.com (2).png" },
+      { name: "chowmin", desc: "Hot, Spicy & Full of Flavour!\n Enjoy our street-style Chowmein tossed with fresh veggies & sauces – every bite hits different! 🍜🔥", price: 100, image: "pngwing.com (4).png" },
+      { name: "chilli potato", desc: "Crispy, Spicy & Irresistible!\n Golden fried potatoes tossed in tangy chilli sauce – the perfect Indo-Chinese treat! 🥔🌶️🔥", price: 100, image: "pngwing.com.png" }
+    ];
+
+    const menu = document.getElementById("menu");
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    const updateCartSummary = () => {
+      const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
+      const totalPrice = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      document.getElementById("cart-summary").innerText = `${totalItems} items • ₹${totalPrice}`;
+      document.getElementById("cart-badge").innerText = totalItems;
+    };
+
+    menuData.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "menu-card";
+      card.innerHTML = `
+        <img src="${item.image}" alt="${item.name}">
+        <div class="menu-info">
+          <h3>${item.name}</h3>
+          <p>${item.desc}</p>
+          <div class="price">₹${item.price}</div>
+          <div class="qty-control">
+            <button class="minus">-</button>
+            <span class="qty">1</span>
+            <button class="plus">+</button>
+          </div>
+          <button class="add-btn">Add to Cart</button>
+        </div>
+      `;
+
+      const minus = card.querySelector(".minus");
+      const plus = card.querySelector(".plus");
+      const qtySpan = card.querySelector(".qty");
+      const addBtn = card.querySelector(".add-btn");
+
+      let quantity = 1;
+
+      minus.onclick = (e) => {
+        e.stopPropagation();
+        if (quantity > 1) {
+          quantity--;
+          qtySpan.innerText = quantity;
+        }
+      };
+
+      plus.onclick = (e) => {
+        e.stopPropagation();
+        quantity++;
+        qtySpan.innerText = quantity;
+      };
+
+      addBtn.onclick = (e) => {
+        e.stopPropagation();
+        const existing = cart.find(i => i.name === item.name);
+        if (existing) {
+          existing.quantity += quantity;
+        } else {
+          cart.push({ ...item, quantity });
+        }
+        localStorage.setItem("cart", JSON.stringify(cart));
+        updateCartSummary();
+        
+        quantity = 1;
+        qtySpan.innerText = quantity;
+      };
+
+      menu.appendChild(card);
+    });
+
+    updateCartSummary();
+  </script>
+
+</body>
+</html>

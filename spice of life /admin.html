@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - A Spice of Life</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #FF5A00;
+      margin-bottom: 20px;
+    }
+    .order-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .order-card h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+      color: #333;
+    }
+    .order-card p {
+      margin: 4px 0;
+      font-size: 14px;
+      color: #555;
+    }
+    .items {
+      background: #f9f9f9;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+    .btn {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: #FF5A00;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    .rapido-btn {
+      background: #0095ff;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📋 All Orders</h1>
+  <div id="ordersContainer"></div>
+
+  <!-- Firebase Setup -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { getFirestore, collection, doc, updateDoc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBN0r1XX_sIIpb-b2GtgCo_RFEWUqVv0W4",
+      authDomain: "restaurant-delivery-app-ede1e.firebaseapp.com",
+      projectId: "restaurant-delivery-app-ede1e",
+      storageBucket: "restaurant-delivery-app-ede1e.appspot.com",
+      messagingSenderId: "1055516872227",
+      appId: "1:1055516872227:web:40b937f5fb9f8656cf6b96",
+      measurementId: "G-LMSRCB7YEG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const ordersContainer = document.getElementById("ordersContainer");
+    const ordersRef = collection(db, "orders");
+    const q = query(ordersRef);
+
+    let existingOrders = new Set();
+
+    onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        const order = change.doc.data();
+        const orderId = change.doc.id;
+
+        if (change.type === "added" && !existingOrders.has(orderId)) {
+          existingOrders.add(orderId);
+
+          alert(`🆕 New order received from ${order.phone}`);
+          const audio = new Audio("https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3");
+          audio.play();
+
+          const div = document.createElement("div");
+          div.className = "order-card";
+          div.innerHTML = `
+            <h3>📦 Order ID: ${orderId}</h3>
+            <p><strong>Phone:</strong> ${order.phone}</p>
+            <p><strong>Address:</strong> ${order.address}</p>
+            <p><strong>Total:</strong> ₹${order.totalAmount}</p>
+            <p><strong>Status:</strong> ${order.status}</p>
+            <p><strong>Time:</strong> ${order.time}</p>
+            <div class="items">
+              <strong>Items:</strong><br>
+              ${order.items.map(i => `• ${i.name} × ${i.quantity} = ₹${i.price * i.quantity}`).join("<br>")}
+            </div>
+            <button class="btn" ${order.status === "Delivered" ? "disabled" : ""} onclick="markDelivered('${orderId}', this)">Mark as Delivered</button>
+            <a class="btn rapido-btn" href="https://rapido.bike/Meerut/main-page" target="_blank">Book Rapido</a>
+          `;
+          ordersContainer.prepend(div);
+        }
+      });
+    });
+
+    window.markDelivered = async function(orderId, btn) {
+      const ref = doc(db, "orders", orderId);
+      await updateDoc(ref, { status: "Delivered" });
+      btn.disabled = true;
+      btn.innerText = "Delivered";
+    }
+  </script>
+
+</body>
+</html>

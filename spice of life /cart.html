@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Your Cart - A Spice of Life</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #FF5A00;
+      --bg: #f5f5f5;
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      padding-bottom: 100px;
+    }
+    header {
+      background: white;
+      padding: 16px;
+      font-size: 20px;
+      color: var(--primary);
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .cart-container {
+      padding: 16px;
+      max-width: 700px;
+      margin: auto;
+    }
+    .cart-item {
+      background: white;
+      display: flex;
+      gap: 12px;
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .cart-item img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .cart-info {
+      flex: 1;
+    }
+    .cart-info h4 { font-size: 16px; }
+    .cart-info p { font-size: 13px; color: #777; }
+    .cart-info .price { margin-top: 6px; color: var(--primary); font-weight: 600; }
+
+    .summary, .address-form {
+      background: white;
+      padding: 16px;
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .summary div {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .summary .total {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    label { font-size: 14px; margin-top: 12px; display: block; }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      margin-top: 4px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .place-order {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      padding: 16px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>🛒 Your Cart</header>
+
+  <div class="cart-container" id="cartContainer"></div>
+
+  <div class="summary">
+    <div><span>Subtotal</span><span id="subtotal">₹0</span></div>
+    <div><span>Delivery</span><span id="delivery">₹0</span></div>
+    <div class="total"><span>Total</span><span id="total">₹0</span></div>
+  </div>
+
+  <div class="address-form">
+    <label for="address">Delivery Address</label>
+    <textarea id="address" rows="3" placeholder="Enter your full address..."></textarea>
+
+    <label for="phone">Phone Number</label>
+    <input type="tel" id="phone" placeholder="e.g., 9876543210" />
+  </div>
+
+  <div class="place-order" id="placeOrderBtn">Place Order</div>
+
+  <!-- Firebase Setup -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBN0r1XX_sIIpb-b2GtgCo_RFEWUqVv0W4",
+      authDomain: "restaurant-delivery-app-ede1e.firebaseapp.com",
+      projectId: "restaurant-delivery-app-ede1e",
+      storageBucket: "restaurant-delivery-app-ede1e.appspot.com",
+      messagingSenderId: "1055516872227",
+      appId: "1:1055516872227:web:40b937f5fb9f8656cf6b96",
+      measurementId: "G-LMSRCB7YEG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const cartContainer = document.getElementById("cartContainer");
+    const subtotalEl = document.getElementById("subtotal");
+    const deliveryEl = document.getElementById("delivery");
+    const totalEl = document.getElementById("total");
+
+    let subtotal = 0;
+
+    cart.forEach(item => {
+      subtotal += item.price * item.quantity;
+
+      const card = document.createElement("div");
+      card.className = "cart-item";
+      card.innerHTML = `
+        <img src="${item.image}" alt="${item.name}" />
+        <div class="cart-info">
+          <h4>${item.name}</h4>
+          <p>Qty: ${item.quantity}</p>
+          <div class="price">₹${item.price * item.quantity}</div>
+        </div>
+      `;
+      cartContainer.appendChild(card);
+    });
+
+    const DELIVERY = subtotal > 500 ? 0 : 100;
+
+    subtotalEl.innerText = `₹${subtotal}`;
+    deliveryEl.innerText = `₹${DELIVERY}`;
+    totalEl.innerText = `₹${subtotal + DELIVERY}`;
+
+    document.getElementById("placeOrderBtn").addEventListener("click", async () => {
+      const address = document.getElementById("address").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+
+      if (!address || !phone) {
+        alert("Please enter both address and phone.");
+        return;
+      }
+
+      const order = {
+        items: cart,
+        address,
+        phone,
+        deliveryCharge: DELIVERY,
+        totalAmount: subtotal + DELIVERY,
+        time: new Date().toLocaleString(),
+        status: "Pending"
+      };
+
+      try {
+        await addDoc(collection(db, "orders"), order);
+        
+        localStorage.removeItem("cart");
+        window.location.href = "success.html";
+      } catch (err) {
+        console.error("Error placing order:", err);
+        alert("Something went wrong. Try again.");
+      }
+    });
+  </script>
+
+</body>
+</html>
